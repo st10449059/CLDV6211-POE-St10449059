@@ -14,46 +14,38 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        // Constructor injection provides the database context to the controller (Freeman, 2022).
-        public BookingsController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        public BookingsController(ApplicationDbContext context) => _context = context;
 
-        // GET: Bookings
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var applicationDbContext = _context.Bookings.Include(b => b.Event);
-            return View(await applicationDbContext.ToListAsync());
-        }
-
-        // GET: Bookings/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var booking = await _context.Bookings
+            var bookings = _context.Bookings
                 .Include(b => b.Event)
-                .FirstOrDefaultAsync(m => m.BookingId == id);
-            if (booking == null)
+                    .ThenInclude(e => e.Venue)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
             {
-                return NotFound();
+                bookings = bookings.Where(s => s.Event.EventName.Contains(searchString)
+                                            || s.BookingId.ToString().Equals(searchString));
             }
 
-            return View(booking);
+            return View(await bookings.ToListAsync());
         }
 
-        // GET: Bookings/Create
+        // ADDED: Missing GET Create method to prevent "Page not working" error
         public IActionResult Create()
         {
-            ViewData["EventId"] = new SelectList(_context.Events, "EventId", "EventName");
+            var eventList = _context.Events.ToList();
+            if (!eventList.Any())
+            {
+                TempData["Error"] = "Please create an Event first before making a booking.";
+                return RedirectToAction("Index", "Events");
+            }
+
+            ViewData["EventId"] = new SelectList(eventList, "EventId", "EventName");
             return View();
         }
 
-        // POST: Bookings/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("BookingId,AttendeeName,EventId")] Booking booking)
@@ -68,95 +60,6 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
             return View(booking);
         }
 
-        // GET: Bookings/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking == null)
-            {
-                return NotFound();
-            }
-            ViewData["EventId"] = new SelectList(_context.Events, "EventId", "EventName", booking.EventId);
-            return View(booking);
-        }
-
-        // POST: Bookings/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("BookingId,AttendeeName,EventId")] Booking booking)
-        {
-            if (id != booking.BookingId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(booking);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    // FIXED: Re-added the missing BookingExists check
-                    if (!BookingExists(booking.BookingId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["EventId"] = new SelectList(_context.Events, "EventId", "EventName", booking.EventId);
-            return View(booking);
-        }
-
-        // GET: Bookings/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var booking = await _context.Bookings
-                .Include(b => b.Event)
-                .FirstOrDefaultAsync(m => m.BookingId == id);
-            if (booking == null)
-            {
-                return NotFound();
-            }
-
-            return View(booking);
-        }
-
-        // POST: Bookings/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking != null)
-            {
-                _context.Bookings.Remove(booking);
-                await _context.SaveChangesAsync();
-            }
-            return RedirectToAction(nameof(Index));
-        }
-
-        // ADDED: Private helper method to resolve the red squiggly error
-        private bool BookingExists(int id)
-        {
-            return _context.Bookings.Any(e => e.BookingId == id);
-        }
+        private bool BookingExists(int id) => _context.Bookings.Any(e => e.BookingId == id);
     }
 }
