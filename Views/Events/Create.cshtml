@@ -6,15 +6,16 @@
 
 <h1 class="display-6">Create Event</h1>
 <hr />
+
 <div class="row">
     <div class="col-md-6">
-        @* FIXED: Added enctype to allow image file uploads *@
         <form asp-action="Create" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            @* CRITICAL: This line displays the "Double Booking" alert message *@
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3 fw-bold"></div>
 
             <div class="form-group mb-3">
                 <label asp-for="EventName" class="control-label fw-bold"></label>
-                <input asp-for="EventName" class="form-control" placeholder="Enter event name" />
+                <input asp-for="EventName" class="form-control" />
                 <span asp-validation-for="EventName" class="text-danger"></span>
             </div>
 
@@ -24,17 +25,15 @@
                 <span asp-validation-for="EventDate" class="text-danger"></span>
             </div>
 
-            @* FIXED: Changed from text input to File input for Azure Blob Storage *@
             <div class="form-group mb-3">
                 <label class="control-label fw-bold">Event Image</label>
                 <input type="file" name="imageFile" class="form-control" accept="image/*" />
             </div>
 
             <div class="form-group mb-4">
-                <label asp-for="VenueId" class="control-label fw-bold">Select Venue</label>
-                @* Fixed: Using double quotes and the @ symbol for the C# expression *@
+                <label asp-for="VenueId" class="control-label fw-bold">Venue</label>
                 <select asp-for="VenueId" class="form-select" asp-items="@(ViewData["VenueId"] as SelectList)">
-                    <option value="">-- Select a Venue --</option>
+                    <option value="">-- Select Venue --</option>
                 </select>
                 <span asp-validation-for="VenueId" class="text-danger"></span>
             </div>

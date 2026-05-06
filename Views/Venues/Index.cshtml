@@ -6,48 +6,39 @@
 
 <h1 class="display-6">Venues</h1>
 
+@* Requirement: Display an alert to the user when a validation error occurs *@
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Hold on!</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <p>
-    @* Tag Helpers are used here to generate the link to the Create action (Microsoft, 2023) *@
     <a asp-action="Create" class="btn btn-outline-primary">Create New Venue</a>
 </p>
 
 <table class="table table-striped table-hover">
     <thead class="table-dark">
         <tr>
-            <th>
-                @* HTML Helpers retrieve metadata from the Model (Freeman, 2022) *@
-                @Html.DisplayNameFor(model => model.VenueName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Location)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ImageUrl)
-            </th>
+            <th>@Html.DisplayNameFor(model => model.VenueName)</th>
+            <th>@Html.DisplayNameFor(model => model.Location)</th>
+            <th>@Html.DisplayNameFor(model => model.ImageUrl)</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @* Iterates through the collection of Venues passed from the Controller *@
         @foreach (var item in Model)
         {
             <tr>
-                <td class="fw-bold">
-                    @Html.DisplayFor(modelItem => item.VenueName)
+                <td class="fw-bold">@Html.DisplayFor(modelItem => item.VenueName)</td>
+                <td>@Html.DisplayFor(modelItem => item.Location)</td>
+                <td>
+                    @* Displays the image directly to prove Blob Storage is working *@
+                    <img src="@item.ImageUrl" style="height:50px; width:auto;" class="rounded shadow-sm" alt="Venue" />
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Location)
-                </td>
-                <td>
-                    @* CSS Constraint: Implements text-overflow control for long image URLs 
-                       to ensure the layout remains responsive and avoids horizontal scrolling (Coyne, 2021).
-                    *@
-                    <div style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        @Html.DisplayFor(modelItem => item.ImageUrl)
-                    </div>
-                </td>
-                <td>
-                    @* Routing parameters are passed via asp-route-id for CRUD operations *@
                     <a asp-action="Edit" asp-route-id="@item.VenueId">Edit</a> |
                     <a asp-action="Details" asp-route-id="@item.VenueId">Details</a> |
                     <a asp-action="Delete" asp-route-id="@item.VenueId">Delete</a>
