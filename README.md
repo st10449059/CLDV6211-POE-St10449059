@@ -29,6 +29,87 @@ https://youtu.be/VukVhs6QfwI
 # Azure Storage Explorer
 <img width="939" height="497" alt="image" src="https://github.com/user-attachments/assets/b136d2bf-9269-4c86-a51d-bd8728ccff2f" />
 
+# Blob service code 
+
+using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Threading.Tasks;
+
+/* * CODE ATTRIBUTION & REFERENCE:
+ * The implementation of Azure Blob Storage integration and the Azurite compatibility 
+ * fixes were developed using official Microsoft documentation.
+ * * Microsoft. (2023). Azure Blob storage client library for .NET. 
+ * Available at: https://learn.microsoft.com/en-us/azure/storage/blobs/
+ */
+
+namespace CLDV6211_Assignment_Part_1_St10449059.Services
+{
+    /// <summary>
+    /// Service responsible for handling file uploads to Azure Blob Storage or local Azurite emulator.
+    /// This service supports Phase A (Cloud Data Management) requirements.
+    /// </summary>
+    public class BlobService
+    {
+        private readonly BlobServiceClient _blobServiceClient;
+
+        public BlobService(string connectionString)
+        {
+            /* * PART 2: COMPATIBILITY FIX
+             * We force a specific older API version (2021-08-06) to ensure 
+             * compatibility with the lab's specific version of the Azurite emulator.
+             * This prevents "Version Not Supported" errors during development.
+             */
+            var options = new BlobClientOptions(BlobClientOptions.ServiceVersion.V2021_08_06);
+            _blobServiceClient = new BlobServiceClient(connectionString, options);
+        }
+
+        /// <summary>
+        /// Uploads a file from an HTML form to a specified blob container.
+        /// </summary>
+        /// <param name="file">The IFormFile received from the controller.</param>
+        /// <param name="containerName">Target container (e.g., 'venue-images' or 'event-images').</param>
+        /// <returns>The public URI of the uploaded blob.</returns>
+        public async Task<string> UploadFileAsync(IFormFile file, string containerName)
+        {
+            // Initialize the container client using the service client
+            var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+
+            try
+            {
+                /*
+                 * Ensures the container exists in the storage environment.
+                 * Set to PublicAccessType.Blob to allow the web application to display 
+                 * images directly via their URL.
+                 */
+                await containerClient.CreateIfNotExistsAsync(Azure.Storage.Blobs.Models.PublicAccessType.Blob);
+            }
+            catch (Azure.RequestFailedException)
+            {
+                // Silently continue if container check fails due to version handshake issues with Azurite
+            }
+
+            /*
+             * Generate a unique blob name using Path.GetRandomFileName() to avoid 
+             * overwriting files with the same name in the storage container.
+             */
+            var blobClient = containerClient.GetBlobClient(Path.GetRandomFileName() + Path.GetExtension(file.FileName));
+
+            // Open the file stream for reading the uploaded content
+            using var stream = file.OpenReadStream();
+
+            /* * PART 2: UPLOAD FIX
+             * Performs an asynchronous upload. The 'true' parameter allows overwriting
+             * if a blob with the same name happens to exist.
+             */
+            await blobClient.UploadAsync(stream, true);
+
+            // Return the absolute string URL of the blob for database persistence
+            return blobClient.Uri.ToString();
+        }
+    }
+}
+
 # Refrences 
 •	Connolly, T. M. & Begg, C. E. (2015). Database Systems: A Practical Approach to Design, Implementation, and Management. 6th edition. Pearson Education.
 
