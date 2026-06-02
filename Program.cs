@@ -67,7 +67,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059
 }
 
 /* * =========================================================================================
- * REFERENCE LIST & ATTRIBUTION (FINAL)
+ * REFERENCE LIST & ATTRIBUTION 
  * =========================================================================================
  * · Connolly, T. M. & Begg, C. E. (2015). Database Systems: A Practical Approach. 6th ed.
  * · Coyne, J. (2021). CSS Refactoring: Architecting Systems for Change. 2nd edition.

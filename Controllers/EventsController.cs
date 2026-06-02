@@ -94,7 +94,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("EventId,EventName,EventDate,VenueId,EventTypeId")] Event @event, IFormFile imageFile)
         {
-            // Concurrency Validation: Prevents double-booking the same venue on the same day
+            // Concurrency Validation: Prevents double-booking the same venue on the same day --
             var isAlreadyBooked = await _context.Events.AnyAsync(e =>
                 e.VenueId == @event.VenueId &&
                 e.EventDate.Date == @event.EventDate.Date);
@@ -109,7 +109,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
 
             if (ModelState.IsValid)
             {
-                // Upload image to Azure Blob Storage if provided
+                // Upload image to Azure Blob Storage if provided --
                 if (imageFile != null)
                 {
                     @event.ImageUrl = await _blobService.UploadFileAsync(imageFile, "event-images");
