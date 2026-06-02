@@ -1,167 +1,115 @@
 Theory Questions 
-1. Cloud vs. On Premises Deployment
-Deploying "EventEase" in the cloud (e.g., Azure or AWS) differs significantly from traditional on-premises hosting (using your own local server) in three main areas:
-•	Security:
-
-o	On-Premises: You are responsible for everything, from the physical locks on the server room door to the network firewalls.
-
-o	Cloud: Security follows a Shared Responsibility Model. The cloud provider secures the physical hardware and data centers, while you focus on securing your application code and user data.
-
-o	Example: In the cloud, you can enable Multi-Factor Authentication (MFA) with a single click, whereas on premises might require complex server installations.
-
-•	Deployment Speed:
-
-o	On-Premises: Deploying can take weeks because you might need to purchase, rack, and configure physical hardware before installing the OS and SQL Server.
-
-o	Cloud: Deployment happens in minutes using provisioning. You can spin up a web server and a database for EventEase almost instantly via a management portal.
-
-•	Resource Management:
-
-o	On-Premises: You must buy enough hardware to handle "peak load" (e.g., a massive event booking day), which remains idle and wasted during quiet periods.
-
-o	Cloud: Uses Elasticity and Scalability. If your EventEase site gets a surge of users, the cloud can automatically add more power (Scale-out) and then shrink back down when the surge is over to save costs.
-
-3. IaaS, PaaS, and SaaS: The "Pizza as a Service" Comparison
-
-The primary difference between these models is control vs. convenience.
-Service Model	Definition	Responsibility
-IaaS (Infrastructure)	Provides raw virtual machines, storage, and networks.	You manage the OS, runtime, and updates.
-PaaS (Platform)	Provides a framework for developers to build and deploy apps.	You only manage the code and data.
-SaaS (Software)	Provides a finished product via a web browser (e.g., Gmail).	The provider manages everything.
-
-Why EventEase benefits from PaaS (e.g., Azure App Service):
-As a university student/developer, PaaS is the best fit for your project for these reasons:
-1.	Focus on Coding: You don't have to worry about updating Windows Server or patching the SQL Server engine. You just push your code, and the platform handles the rest.
-2.	Built-in Tools: PaaS provides easy "Push-to-Deploy" from GitHub or Visual Studio, which is much faster than manually setting up an IaaS virtual machine.
-3.	Cost-Efficiency: You only pay for the platform resources you use, rather than paying for a whole virtual machine that might be overpowered for a second-year project.
-
-
-
-# ERD Diagram: 
- <img width="940" height="491" alt="image" src="https://github.com/user-attachments/assets/842d15cc-e58f-424b-a761-a7e4c141553f" />
 
 
 # GitHub Link: 
-https://github.com/st10449059/CLDV6211-Assignment-Part-1-St10449059
+https://github.com/st10449059/CLDV6211-POE-St10449059
+
 
 # YouTube link: 
- https://youtu.be/ebI4k-q2rhc
- 
+https://youtu.be/VukVhs6QfwI
+
 # App Running
 # Home Page:  
-<img width="939" height="498" alt="image" src="https://github.com/user-attachments/assets/25b48cd1-46d6-40de-8b38-f8bd09fe4bad" />
+<img width="939" height="500" alt="image" src="https://github.com/user-attachments/assets/0558dcf8-92aa-41e1-82c6-5c11ad8965d4" />
+
 
 # Event Page:
-<img width="939" height="499" alt="image" src="https://github.com/user-attachments/assets/70a505a7-0c5c-46e7-9343-faf9db4d7aa6" />
+<img width="939" height="500" alt="image" src="https://github.com/user-attachments/assets/98e7f7f4-5767-4621-8ff1-d5bbe2481c9f" />
+
 
 # Venues Page:
- <img width="939" height="500" alt="image" src="https://github.com/user-attachments/assets/cee73a03-5dd6-4149-aabe-e0055b72d8a2" />
+<img width="939" height="498" alt="image" src="https://github.com/user-attachments/assets/dace1406-5b25-4ee3-a45b-e86092895a61" />
+
 
 # Bookings Page:
- <img width="939" height="501" alt="image" src="https://github.com/user-attachments/assets/ff7adeaf-7fde-47cc-a629-80b93afca1d8" />
+<img width="938" height="502" alt="image" src="https://github.com/user-attachments/assets/89635c2d-989d-4fc2-9ac2-0d5b84e69f5d" />
 
 
- # Program.cs
- 
- /* * CODE ATTRIBUTION
- * ------------------------------------------------------------------------------------------
- * Author/Source: Microsoft Documentation (ASP.NET Core Fundamentals)
- * Date: 15 April 2026
- * Description: Configuration of the web application builder, dependency injection for 
- * SQL LocalDB, and the middleware request pipeline.
- * Link: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/startup
- * ------------------------------------------------------------------------------------------
+
+# Azure Storage Explorer
+<img width="939" height="497" alt="image" src="https://github.com/user-attachments/assets/b136d2bf-9269-4c86-a51d-bd8728ccff2f" />
+
+# Blob service code 
+
+using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Threading.Tasks;
+
+/* * CODE ATTRIBUTION & REFERENCE:
+ * The implementation of Azure Blob Storage integration and the Azurite compatibility 
+ * fixes were developed using official Microsoft documentation.
+ * * Microsoft. (2023). Azure Blob storage client library for .NET. 
+ * Available at: https://learn.microsoft.com/en-us/azure/storage/blobs/
  */
 
-using Microsoft.EntityFrameworkCore;
-using CLDV6211_Assignment_Part_1_St10449059.Data;
-
-namespace CLDV6211_Assignment_Part_1_St10449059
+namespace CLDV6211_Assignment_Part_1_St10449059.Services
 {
- 
-    public class Program
+    /// <summary>
+    /// Service responsible for handling file uploads to Azure Blob Storage or local Azurite emulator.
+    /// This service supports Phase A (Cloud Data Management) requirements.
+    /// </summary>
+    public class BlobService
     {
-        public static void Main(string[] args)
+        private readonly BlobServiceClient _blobServiceClient;
+
+        public BlobService(string connectionString)
         {
-            var builder = WebApplication.CreateBuilder(args);
-
-            /* * 1. Service Registration: 
-             * Registering the ApplicationDbContext into the Dependency Injection (DI) container. 
-             * This allows controllers to request a database instance via their constructors (Freeman, 2022).
+            /* * PART 2: COMPATIBILITY FIX
+             * We force a specific older API version (2021-08-06) to ensure 
+             * compatibility with the lab's specific version of the Azurite emulator.
+             * This prevents "Version Not Supported" errors during development.
              */
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            var options = new BlobClientOptions(BlobClientOptions.ServiceVersion.V2021_08_06);
+            _blobServiceClient = new BlobServiceClient(connectionString, options);
+        }
 
-            // Registers the MVC services required to handle Controllers and Views.
-            builder.Services.AddControllersWithViews();
+        /// <summary>
+        /// Uploads a file from an HTML form to a specified blob container.
+        /// </summary>
+        /// <param name="file">The IFormFile received from the controller.</param>
+        /// <param name="containerName">Target container (e.g., 'venue-images' or 'event-images').</param>
+        /// <returns>The public URI of the uploaded blob.</returns>
+        public async Task<string> UploadFileAsync(IFormFile file, string containerName)
+        {
+            // Initialize the container client using the service client
+            var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
-            var app = builder.Build();
-
-            /* * 2. Middleware Pipeline Configuration:
-             * Defines how HTTP requests are handled as they travel through the application 
-             * (Lerman & Miller, 2015).
-             */
-            if (!app.Environment.IsDevelopment())
+            try
             {
-                // Exception handling and HSTS for production-level security.
-                app.UseExceptionHandler("/Home/Error");
-                app.UseHsts();
+                /*
+                 * Ensures the container exists in the storage environment.
+                 * Set to PublicAccessType.Blob to allow the web application to display 
+                 * images directly via their URL.
+                 */
+                await containerClient.CreateIfNotExistsAsync(Azure.Storage.Blobs.Models.PublicAccessType.Blob);
+            }
+            catch (Azure.RequestFailedException)
+            {
+                // Silently continue if container check fails due to version handshake issues with Azurite
             }
 
-            app.UseHttpsRedirection();
-
-            // Enables the serving of static assets like CSS, JavaScript, and Images (Microsoft, 2023).
-            app.UseStaticFiles();
-
-            app.UseRouting();
-
-            app.UseAuthorization();
-
-            /* * 3. Routing:
-             * Defines the Conventional Routing pattern used to map URLs to specific 
-             * Controller actions (Freeman, 2022).
+            /*
+             * Generate a unique blob name using Path.GetRandomFileName() to avoid 
+             * overwriting files with the same name in the storage container.
              */
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+            var blobClient = containerClient.GetBlobClient(Path.GetRandomFileName() + Path.GetExtension(file.FileName));
 
-            app.Run();
+            // Open the file stream for reading the uploaded content
+            using var stream = file.OpenReadStream();
+
+            /* * PART 2: UPLOAD FIX
+             * Performs an asynchronous upload. The 'true' parameter allows overwriting
+             * if a blob with the same name happens to exist.
+             */
+            await blobClient.UploadAsync(stream, true);
+
+            // Return the absolute string URL of the blob for database persistence
+            return blobClient.Uri.ToString();
         }
     }
 }
 
-/* * =========================================================================================
- * REFERENCE LIST & ATTRIBUTION
- * =========================================================================================
- * The following resources were utilized for the design, implementation, and documentation 
- * of the EventEase Web Application (Part 1).
- * * · Connolly, T. M. & Begg, C. E. (2015). Database Systems: A Practical Approach to Design, 
- * Implementation, and Management. 6th edition. Pearson Education.
- * * · Coyne, J. (2021). CSS Refactoring: Architecting Systems for Change. 2nd edition. 
- * O'Reilly Media.
- * * · Elmasri, R. & Navathe, S. B. (2017). Fundamentals of Database Systems. 7th edition. 
- * Pearson.
- * * · Freeman, A. (2022). Pro ASP.NET Core 6: Develop Cloud-Ready Web Applications Using MVC, 
- * Blazor, and Razor Pages. 9th edition. Apress.
- * * · Lerman, J. & Miller, R. (2015). Programming Entity Framework: DbContext. 2nd edition. 
- * O'Reilly Media.
- * * · Lucid Software Inc. (2026). Lucidchart Cloud-based Visual Workspace. [Online]. 
- * Available at: https://www.lucidchart.com [Accessed 14 April 2026].
- * * · Microsoft. (2023). ASP.NET Core Middleware. [Online]. 
- * Available at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/ 
- * [Accessed 14 April 2026].
- * * · Microsoft. (2023). Configuration in ASP.NET Core. [Online]. 
- * Available at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/ 
- * [Accessed 14 April 2026].
- * * · Microsoft. (2023). Model-View-Controller (MVC) Pattern. [Online]. 
- * Available at: https://learn.microsoft.com/en-us/aspnet/core/mvc/overview 
- * [Accessed 14 April 2026].
- * * · Microsoft. (2023). Primary and Foreign Key Constraints. [Online]. 
- * Available at: https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints 
- * [Accessed 14 April 2026].
- * =========================================================================================
- */
- 
 # Refrences 
 •	Connolly, T. M. & Begg, C. E. (2015). Database Systems: A Practical Approach to Design, Implementation, and Management. 6th edition. Pearson Education.
 
@@ -182,3 +130,33 @@ namespace CLDV6211_Assignment_Part_1_St10449059
 •	Microsoft. (2023). Model-View-Controller (MVC) Pattern. [Online]. Available at: https://learn.microsoft.com/en-us/aspnet/core/mvc/overview [Accessed 14 April 2026].
 
 •	Microsoft. (2023). Primary and Foreign Key Constraints. [Online]. Available at: https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints [Accessed 14 April 2026].
+
+• CelerData (2025). Normalization vs denormalization: The trade-offs you need to know. [online] Available at: https://celerdata.com/glossary/normalization-vs-denormalization-the-trade-offs-you-need-to-know [Accessed 3 May 2026].
+
+• Codd, E.F. (1970). A Relational Model of Data for Large Shared Data Banks. Communications of the ACM, [online] 13(6), pp. 377-387. Available at: https://doi.org/10.1145/362384.362685 [Accessed 4 May 2026].
+
+•Couchbase (2025). Data normalization vs. denormalization comparison. [online] The Couchbase Blog. Available at: https://www.couchbase.com/blog/normalization-vs-denormalization/ [Accessed 2 May 2026].
+
+• Google Cloud (2026). What is database normalization? [online] Available at: https://cloud.google.com/discover/what-is-database-normalization [Accessed 5 May 2026].
+
+• IBM (2026). What is database normalization? [online] Available at: https://www.ibm.com/think/topics/database-normalization [Accessed 6 May 2026].
+
+• Imaginary Cloud (2025). Azure AI Search: Benefits, use cases and implementation. [online] Available at: https://www.imaginarycloud.com/blog/azure-ai-search-enterprise-guide/ [Accessed 30 April 2026].
+
+• Microsoft Learn (2026a). Introduction to Azure AI Search. [online] Available at: https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search [Accessed 1 May 2026].
+
+• Microsoft Learn (2026b). Vector search overview - Azure AI Search. [online] Available at: https://learn.microsoft.com/en-us/azure/search/vector-search-overview [Accessed 1 May 2026].
+
+• Microsoft Learn (2026c). Azure Blob storage client library for .NET. [online] Available at: https://learn.microsoft.com/en-us/azure/storage/blobs/ [Accessed 4 May 2026].
+
+• Microsoft Learn (2026d). Handle concurrency exceptions in Entity Framework Core. [online] Available at: https://learn.microsoft.com/en-us/ef/core/saving/concurrency [Accessed 5 May 2026].
+
+• Plain Concepts (2026). Azure Cognitive Search | Introduction. [online] Available at: https://www.plainconcepts.com/azure-cognitive-search-introduction/ [Accessed 2 May 2026].
+
+• ScaleGrid (2025). What is database normalization. [online] Available at: https://scalegrid.io/blog/what-is-database-normalization/ [Accessed 6 May 2026].
+
+• Unstructured (2025). Comparing vector and keyword search for AI applications. [online] Available at: https://unstructured.io/insights/comparing-vector-and-keyword-search-for-ai-applications [Accessed 4 May 2026].
+
+
+
+
