@@ -1,4 +1,13 @@
-﻿using Azure.Storage.Blobs;
+﻿/* * =========================================================================================
+ * CODE ATTRIBUTION
+ * =========================================================================================
+ * Description: Azure Blob Storage Integration (Upload & Delete Async Methods)
+ * Source: Microsoft (2023) Azure Blob storage client library v12 for .NET.
+ * Link: https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-dotnet
+ * =========================================================================================
+ */
+
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Threading.Tasks;
@@ -39,9 +48,6 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Services
             return blobClient.Uri.ToString();
         }
 
-        // ==========================================
-        // This is the missing method your controller is looking for!
-        // ==========================================
         public async Task<bool> DeleteFileAsync(string blobUrl)
         {
             if (string.IsNullOrEmpty(blobUrl)) return false;

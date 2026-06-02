@@ -1,12 +1,15 @@
-/* * CODE ATTRIBUTION
- * ------------------------------------------------------------------------------------------
- * Author/Source: Microsoft Documentation (ASP.NET Core Fundamentals)
- * Date: 15 April 2026
- * Description: Configuration of the web application builder, dependency injection for 
- * SQL LocalDB, and the middleware request pipeline.
+/* * =========================================================================================
+ * CODE ATTRIBUTION
+ * =========================================================================================
+ * Description: Configuration of the web application builder and middleware pipeline.
+ * Source: Microsoft (2023) ASP.NET Core Fundamentals.
  * Link: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/startup
- * ------------------------------------------------------------------------------------------
+ * * Description: Dependency injection in ASP.NET Core for SQL and Blob Services.
+ * Source: Microsoft (2023) Dependency injection in ASP.NET Core.
+ * Link: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection
+ * =========================================================================================
  */
+
 using Microsoft.EntityFrameworkCore;
 using CLDV6211_Assignment_Part_1_St10449059.Data;
 using CLDV6211_Assignment_Part_1_St10449059.Services;
@@ -19,18 +22,14 @@ namespace CLDV6211_Assignment_Part_1_St10449059
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            /* * 1. Database Service Registration: 
-             * Registering the ApplicationDbContext into the Dependency Injection (DI) container. 
-             * Source: Microsoft (2023) - Dependency injection in ASP.NET Core.
-             */
+            // 1. Database Service Registration: 
+            // Registering the ApplicationDbContext into the Dependency Injection (DI) container. 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            /* * PART 2: Azure Blob Storage Service Registration
-             * We retrieve the "AzureBlobStorage" connection string from appsettings.json
-             * and register the BlobService as a Singleton for use across the application.
-             * Source: Microsoft (2023) - Azure Blob storage client library for .NET.
-             */
+            // PART 2: Azure Blob Storage Service Registration
+            // We retrieve the "AzureBlobStorage" connection string from appsettings.json
+            // and register the BlobService as a Singleton for use across the application.
             var blobConnection = builder.Configuration.GetConnectionString("AzureBlobStorage");
             builder.Services.AddSingleton(x => new BlobService(blobConnection));
 
@@ -39,9 +38,8 @@ namespace CLDV6211_Assignment_Part_1_St10449059
 
             var app = builder.Build();
 
-            /* * 2. Middleware Pipeline Configuration:
-             * Defines how HTTP requests are handled as they travel through the application.
-             */
+            // 2. Middleware Pipeline Configuration:
+            // Defines how HTTP requests are handled as they travel through the application.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -57,10 +55,8 @@ namespace CLDV6211_Assignment_Part_1_St10449059
 
             app.UseAuthorization();
 
-            /* * 3. Routing:
-             * Defines the Conventional Routing pattern used to map URLs to actions.
-             * Source: Microsoft (2023) - Routing to controller actions in ASP.NET Core.
-             */
+            // 3. Routing:
+            // Defines the Conventional Routing pattern used to map URLs to actions.
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
@@ -71,7 +67,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059
 }
 
 /* * =========================================================================================
- * REFERENCE LIST & ATTRIBUTION (UPDATED FOR PART 2)
+ * REFERENCE LIST & ATTRIBUTION (FINAL)
  * =========================================================================================
  * · Connolly, T. M. & Begg, C. E. (2015). Database Systems: A Practical Approach. 6th ed.
  * · Coyne, J. (2021). CSS Refactoring: Architecting Systems for Change. 2nd edition.
@@ -84,8 +80,12 @@ namespace CLDV6211_Assignment_Part_1_St10449059
  * · Microsoft. (2023). Model-View-Controller (MVC) Pattern. [Online].
  * · Microsoft. (2023). Primary and Foreign Key Constraints. [Online].
  * · Microsoft. (2023). Azure Blob storage documentation. [Online]. Available at: 
- *   https://learn.microsoft.com/en-us/azure/storage/blobs/ [Accessed 05 May 2026].
+ * https://learn.microsoft.com/en-us/azure/storage/blobs/ [Accessed 02 June 2026].
  * · Microsoft. (2023). Dependency injection in ASP.NET Core. [Online]. Available at:
- *   https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection
+ * https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection
+ * · Microsoft. (2023). Complex Querying in Entity Framework Core. [Online]. Available at: 
+ * https://learn.microsoft.com/en-us/ef/core/querying/ [Accessed 02 June 2026].
+ * · Microsoft. (2023). Handle concurrency conflicts in EF Core. [Online]. Available at: 
+ * https://learn.microsoft.com/en-us/ef/core/saving/concurrency [Accessed 02 June 2026].
  * =========================================================================================
  */

@@ -1,4 +1,16 @@
-﻿using CLDV6211_Assignment_Part_1_St10449059.Data;
+﻿/* * =========================================================================================
+ * CODE ATTRIBUTION
+ * =========================================================================================
+ * Description: Advanced Data Filtering & LINQ Queries
+ * Source: Microsoft (2023) Complex Querying in Entity Framework Core.
+ * Link: https://learn.microsoft.com/en-us/ef/core/querying/
+ * * Description: Concurrency & Validation (Double-booking logic)
+ * Source: Microsoft (2023) Handle concurrency conflicts in EF Core.
+ * Link: https://learn.microsoft.com/en-us/ef/core/saving/concurrency
+ * =========================================================================================
+ */
+
+using CLDV6211_Assignment_Part_1_St10449059.Data;
 using CLDV6211_Assignment_Part_1_St10449059.Models;
 using CLDV6211_Assignment_Part_1_St10449059.Services;
 using Microsoft.AspNetCore.Http;
@@ -22,18 +34,21 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
         }
 
         // ==========================================
-        // UPDATED: Advanced Filter Index Method
+        // Advanced Filter Index Method
         // ==========================================
         public async Task<IActionResult> Index(int? eventTypeId, int? venueId, System.DateTime? startDate, System.DateTime? endDate)
         {
+            // Populate lookup tables for the frontend filters
             ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "Name", eventTypeId);
             ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName", venueId);
 
+            // Base query with eager loading for relational data
             var query = _context.Events
                 .Include(e => e.Venue)
                 .Include(e => e.EventType)
                 .AsQueryable();
 
+            // Apply dynamic LINQ filters based on user selection
             if (eventTypeId.HasValue)
             {
                 query = query.Where(e => e.EventTypeId == eventTypeId);
@@ -79,6 +94,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("EventId,EventName,EventDate,VenueId,EventTypeId")] Event @event, IFormFile imageFile)
         {
+            // Concurrency Validation: Prevents double-booking the same venue on the same day
             var isAlreadyBooked = await _context.Events.AnyAsync(e =>
                 e.VenueId == @event.VenueId &&
                 e.EventDate.Date == @event.EventDate.Date);
@@ -93,6 +109,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
 
             if (ModelState.IsValid)
             {
+                // Upload image to Azure Blob Storage if provided
                 if (imageFile != null)
                 {
                     @event.ImageUrl = await _blobService.UploadFileAsync(imageFile, "event-images");
@@ -165,6 +182,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Validation: Ensure events with active attendee bookings cannot be deleted
             var hasActiveBookings = await _context.Bookings.AnyAsync(b => b.EventId == id);
 
             if (hasActiveBookings)
@@ -176,6 +194,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
             var @event = await _context.Events.FindAsync(id);
             if (@event != null)
             {
+                // Isolate and delete the associated image from Azure Blob Storage
                 if (!string.IsNullOrEmpty(@event.ImageUrl))
                 {
                     await _blobService.DeleteFileAsync(@event.ImageUrl);
