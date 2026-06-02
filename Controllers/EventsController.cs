@@ -8,11 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
-/* * CODE ATTRIBUTION & REFERENCE:
- * The logic for double-booking validation and eager loading was developed using:
- * Microsoft. (2023). Handle concurrency exceptions in Entity Framework Core. 
- * Available at: https://learn.microsoft.com/en-us/ef/core/saving/concurrency
- */
 namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
 {
     public class EventsController : Controller
@@ -26,9 +21,37 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
             _blobService = blobService;
         }
 
-        public async Task<IActionResult> Index()
+        // ==========================================
+        // UPDATED: Advanced Filter Index Method
+        // ==========================================
+        public async Task<IActionResult> Index(int? eventTypeId, int? venueId, System.DateTime? startDate, System.DateTime? endDate)
         {
-            return View(await _context.Events.Include(e => e.Venue).ToListAsync());
+            ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "Name", eventTypeId);
+            ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName", venueId);
+
+            var query = _context.Events
+                .Include(e => e.Venue)
+                .Include(e => e.EventType)
+                .AsQueryable();
+
+            if (eventTypeId.HasValue)
+            {
+                query = query.Where(e => e.EventTypeId == eventTypeId);
+            }
+            if (venueId.HasValue)
+            {
+                query = query.Where(e => e.VenueId == venueId);
+            }
+            if (startDate.HasValue)
+            {
+                query = query.Where(e => e.EventDate >= startDate);
+            }
+            if (endDate.HasValue)
+            {
+                query = query.Where(e => e.EventDate <= endDate);
+            }
+
+            return View(await query.ToListAsync());
         }
 
         public async Task<IActionResult> Details(int? id)
@@ -37,6 +60,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
 
             var @event = await _context.Events
                 .Include(e => e.Venue)
+                .Include(e => e.EventType)
                 .FirstOrDefaultAsync(m => m.EventId == id);
 
             if (@event == null) return NotFound();
@@ -47,23 +71,23 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
         public IActionResult Create()
         {
             ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName");
+            ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "Name");
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("EventId,EventName,EventDate,VenueId")] Event @event, IFormFile imageFile)
+        public async Task<IActionResult> Create([Bind("EventId,EventName,EventDate,VenueId,EventTypeId")] Event @event, IFormFile imageFile)
         {
-            // FIX: Use .Date to ensure the entire day is blocked for that venue
             var isAlreadyBooked = await _context.Events.AnyAsync(e =>
                 e.VenueId == @event.VenueId &&
                 e.EventDate.Date == @event.EventDate.Date);
 
             if (isAlreadyBooked)
             {
-                // This adds the error to the validation summary in the View
                 ModelState.AddModelError("", "Validation Error: This venue is already occupied on the selected date.");
                 ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName", @event.VenueId);
+                ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "Name", @event.EventTypeId);
                 return View(@event);
             }
 
@@ -78,6 +102,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName", @event.VenueId);
+            ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "Name", @event.EventTypeId);
             return View(@event);
         }
 
@@ -89,12 +114,13 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
             if (@event == null) return NotFound();
 
             ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName", @event.VenueId);
+            ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "Name", @event.EventTypeId);
             return View(@event);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("EventId,EventName,EventDate,VenueId,ImageUrl")] Event @event, IFormFile? imageFile)
+        public async Task<IActionResult> Edit(int id, [Bind("EventId,EventName,EventDate,VenueId,EventTypeId,ImageUrl")] Event @event, IFormFile? imageFile)
         {
             if (id != @event.EventId) return NotFound();
 
@@ -117,6 +143,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName", @event.VenueId);
+            ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "Name", @event.EventTypeId);
             return View(@event);
         }
 
@@ -126,6 +153,7 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
 
             var @event = await _context.Events
                 .Include(e => e.Venue)
+                .Include(e => e.EventType)
                 .FirstOrDefaultAsync(m => m.EventId == id);
 
             if (@event == null) return NotFound();
@@ -148,6 +176,11 @@ namespace CLDV6211_Assignment_Part_1_St10449059.Controllers
             var @event = await _context.Events.FindAsync(id);
             if (@event != null)
             {
+                if (!string.IsNullOrEmpty(@event.ImageUrl))
+                {
+                    await _blobService.DeleteFileAsync(@event.ImageUrl);
+                }
+
                 _context.Events.Remove(@event);
                 await _context.SaveChangesAsync();
             }

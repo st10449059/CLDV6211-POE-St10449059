@@ -3,20 +3,26 @@
 @{
     ViewData["Title"] = "Create";
 }
-
 <h1 class="display-6">Create Event</h1>
 <hr />
-
 <div class="row">
     <div class="col-md-6">
         <form asp-action="Create" enctype="multipart/form-data">
-            @* CRITICAL: This is where the Double Booking error message appears *@
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3 fw-bold"></div>
 
             <div class="form-group mb-3">
                 <label asp-for="EventName" class="control-label fw-bold"></label>
                 <input asp-for="EventName" class="form-control" placeholder="e.g. Annual Gala" />
                 <span asp-validation-for="EventName" class="text-danger"></span>
+            </div>
+
+            @* NEW: Event Type Dropdown *@
+            <div class="form-group mb-3">
+                <label asp-for="EventTypeId" class="control-label fw-bold"></label>
+                <select asp-for="EventTypeId" class="form-select" asp-items="@(ViewData["EventTypeId"] as SelectList)" required>
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="EventTypeId" class="text-danger"></span>
             </div>
 
             <div class="form-group mb-3">

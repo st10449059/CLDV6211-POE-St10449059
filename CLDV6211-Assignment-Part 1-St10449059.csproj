@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CLDV6211_Assignment_Part_1_St10449059</RootNamespace>
     <UserSecretsId>da5a3ec3-2737-4727-a94a-0c2f6f11c754</UserSecretsId>
+    
+    <NoWarn>NU1901</NoWarn>
+    
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,5 +23,4 @@
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
   </ItemGroup>
-
 </Project>
