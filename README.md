@@ -3,17 +3,25 @@ Reflective Technical Report
 List of Application Features I created EventEase, a complete event and venue management system, for this project. Among the primary elements I put in place are:
 
 •	A dynamic events dashboard with a sophisticated filtering system that lets users look up events by date, place, and category.
+
 •	• A strong venue booking system that expressly forbids multiple booking on the same day by using backend concurrency validation.
+
 •	A media upload system that integrates with the cloud to attach banner pictures to newly created events.
+
 •	A normalized relational database structure that uses lookup tables instead of hardcoded variables to link events, venues, and event categories.
 
 The Experience and Difficulties of Migration One of the most difficult yet instructive aspects of the project were transferring this application from my local development environment to the actual Azure cloud. Initially, I used the Azurite storage emulator and SQL LocalDB to develop and test everything.
+
 To replace my local connection strings for the live Azure SQL and Blob Storage endpoints, the appsettings.json file must be properly updated during the migration process. Managing Entity Framework database migrations across the two environments was one difficulty I encountered during this shift. I momentarily returned to my local database for testing after changing my models and deploying to the cloud. The new ImageUrl column was missing from my local database, which caused the application to crash and throw an "Invalid column name" SQL exception. To get my environments properly synchronized again, I had to use the Package Manager Console to drop and rebuild the local database.
+
 This experience served as a real illustration of the importance of keeping development and production environments apart. I was able to safely debug and rebuild my local database without ever jeopardizing the integrity of the live cloud application by keeping them apart.
+
 Technologies Used and Component Discussion I used three essential Azure services to make sure the application was secure and scalable in the cloud:
 
 •	Azure App Service: I hosted the web application on this platform. I was able to deploy the ASP.NET Core project straight from Visual Studio without needing to set up a server or virtual machine by hand.
+
 •	Azure SQL Database: Because the system mostly uses relational data, I decided to use this to manage the data layer. Strict data integrity and transactional locking are necessary to prevent double bookings, and relational SQL databases are ideal for these tasks.
+
 •	Azure Blob Storage: I incorporated Blob Storage rather than storing large image files straight into the SQL database, which would result in database bloat and slow down queries. Only the lightweight image URL string is saved to the database by the program, which uploads the actual image file to the blob container.
 
 To guarantee a clear division between the database logic and the user interface, the project's foundation was constructed using C# and ASP.NET Core MVC. I controlled all version control through GitHub to make sure my codebase was secure before publishing anything to production, and I utilized Entity Framework Core to communicate with the database using object-oriented LINQ queries rather than raw SQL strings. 
@@ -25,14 +33,18 @@ Azure Cosmos DB's emphasis on flexible schema management and horizontal scalabil
 
 To guarantee rigorous consistency, traditional relational databases give priority to ACID features within a centralized architecture. Because Cosmos DB runs in distributed contexts, developers can use the CAP theorem to balance consistency, availability, and partition tolerance (Babucea, 2021). Because of this, Cosmos DB is appropriate for large-scale applications that need low latency access to unstructured data, but traditional databases are still the best choice for structured transaction processing where defined relationships are needed (Paci, 2022).
 
-3. Security Considerations for Logic Apps
+2. Security Considerations for Logic Apps
 •	Security must be incorporated into the architecture when creating Azure Logic Apps that handle sensitive data. Important factors include:
+
 •	Identity and Access Management: Logic Apps can be authenticated with other Azure services by using Managed Identities. As a result, embedded credentials are no longer required (Morrow, 2013).
+
 •	Data Encryption: Both in transit and at rest, sensitive data must be encrypted. Although Azure offers automatic encryption, developers should manage encryption keys with Key Vault.
+
 •	Network Isolation: To guarantee that the Logic App environment is cut off from the public internet, use private endpoints and VNET integration (Arif, 2025).
+
 •	Logging and Auditing: Turn on diagnostic logging to keep an eye on how the workflow is being carried out. This guarantees adherence to data protection laws and enables the tracking of unwanted access attempts.
 
-4. Creating Robust Workflows with Event Grid
+3. Creating Robust Workflows with Event Grid
 By separating event producers from event consumers, Azure Event Grid establishes reliable workflows. This event-driven architecture improves system efficiency by enabling services to respond to state changes without constant polling (Yu & Buyya, 2009).
 
 Organizations may create automated procedures that successfully manage failures by connecting Event Grid with services like Azure Functions or Logic Apps. Dead letter queues and built-in retry rules are supported by Event Grid. The system transfers a message to a storage container for further examination or reprocessing if it is unable to reach its intended recipient. When individual components encounter unavailability or processing spikes, this mix of services guarantees that the workflow stays functional and fault-tolerant (Sobral, 2026).
