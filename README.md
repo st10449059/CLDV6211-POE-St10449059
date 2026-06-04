@@ -4,7 +4,7 @@ List of Application Features I created EventEase, a complete event and venue man
 
 •	A dynamic events dashboard with a sophisticated filtering system that lets users look up events by date, place, and category.
 
-•	• A strong venue booking system that expressly forbids multiple booking on the same day by using backend concurrency validation.
+•	A strong venue booking system that expressly forbids multiple booking on the same day by using backend concurrency validation.
 
 •	A media upload system that integrates with the cloud to attach banner pictures to newly created events.
 
