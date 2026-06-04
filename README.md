@@ -1,162 +1,115 @@
-Theory Questions 
+# Theory questions
+Reflective Technical Report
+List of Application Features I created EventEase, a complete event and venue management system, for this project. Among the primary elements I put in place are:
+•	A dynamic events dashboard with a sophisticated filtering system that lets users look up events by date, place, and category.
+•	• A strong venue booking system that expressly forbids multiple booking on the same day by using backend concurrency validation.
+•	A media upload system that integrates with the cloud to attach banner pictures to newly created events.
+•	A normalized relational database structure that uses lookup tables instead of hardcoded variables to link events, venues, and event categories.
+The Experience and Difficulties of Migration One of the most difficult yet instructive aspects of the project were transferring this application from my local development environment to the actual Azure cloud. Initially, I used the Azurite storage emulator and SQL LocalDB to develop and test everything.
+To replace my local connection strings for the live Azure SQL and Blob Storage endpoints, the appsettings.json file must be properly updated during the migration process. Managing Entity Framework database migrations across the two environments was one difficulty I encountered during this shift. I momentarily returned to my local database for testing after changing my models and deploying to the cloud. The new ImageUrl column was missing from my local database, which caused the application to crash and throw an "Invalid column name" SQL exception. To get my environments properly synchronized again, I had to use the Package Manager Console to drop and rebuild the local database.
+This experience served as a real illustration of the importance of keeping development and production environments apart. I was able to safely debug and rebuild my local database without ever jeopardizing the integrity of the live cloud application by keeping them apart.
+Technologies Used and Component Discussion I used three essential Azure services to make sure the application was secure and scalable in the cloud:
+•	Azure App Service: I hosted the web application on this platform. I was able to deploy the ASP.NET Core project straight from Visual Studio without needing to set up a server or virtual machine by hand.
 
 
-# GitHub Link: 
+•	Azure SQL Database: Because the system mostly uses relational data, I decided to use this to manage the data layer. Strict data integrity and transactional locking are necessary to prevent double bookings, and relational SQL databases are ideal for these tasks.
+•	Azure Blob Storage: I incorporated Blob Storage rather than storing large image files straight into the SQL database, which would result in database bloat and slow down queries. Only the lightweight image URL string is saved to the database by the program, which uploads the actual image file to the blob container.
+To guarantee a clear division between the database logic and the user interface, the project's foundation was constructed using C# and ASP.NET Core MVC. I controlled all version control through GitHub to make sure my codebase was secure before publishing anything to production, and I utilized Entity Framework Core to communicate with the database using object-oriented LINQ queries rather than raw SQL strings. 
+Advanced Cloud Theory
+1. Cosmos DB versus Traditional Databases
+Azure Cosmos DB's emphasis on flexible schema management and horizontal scalability sets it apart from conventional relational database management systems. Conventional databases rely on vertical scaling and a strict schema, which necessitates updating server hardware to accommodate growing demands. Cosmos DB, on the other hand, enables a multi-model approach that includes wide column, document, key value, and graph formats.
+To guarantee rigorous consistency, traditional relational databases give priority to ACID features within a centralized architecture. Because Cosmos DB runs in distributed contexts, developers can use the CAP theorem to balance consistency, availability, and partition tolerance (Babucea, 2021). Because of this, Cosmos DB is appropriate for large-scale applications that need low latency access to unstructured data, but traditional databases are still the best choice for structured transaction processing where defined relationships are needed (Paci, 2022).
+2. Security Considerations for Logic Apps
+•	Security must be incorporated into the architecture when creating Azure Logic Apps that handle sensitive data. Important factors include:
+•	Identity and Access Management: Logic Apps can be authenticated with other Azure services by using Managed Identities. As a result, embedded credentials are no longer required (Morrow, 2013).
+•	Data Encryption: Both in transit and at rest, sensitive data must be encrypted. Although Azure offers automatic encryption, developers should manage encryption keys with Key Vault.
+•	Network Isolation: To guarantee that the Logic App environment is cut off from the public internet, use private endpoints and VNET integration (Arif, 2025).
+•	Logging and Auditing: Turn on diagnostic logging to keep an eye on how the workflow is being carried out. This guarantees adherence to data protection laws and enables the tracking of unwanted access attempts.
+3. Creating Robust Workflows with Event Grid
+By separating event producers from event consumers, Azure Event Grid establishes reliable workflows. This event-driven architecture improves system efficiency by enabling services to respond to state changes without constant polling (Yu & Buyya, 2009).
+Organizations may create automated procedures that successfully manage failures by connecting Event Grid with services like Azure Functions or Logic Apps. Dead letter queues and built-in retry rules are supported by Event Grid. The system transfers a message to a storage container for further examination or reprocessing if it is unable to reach its intended recipient. When individual components encounter unavailability or processing spikes, this mix of services guarantees that the workflow stays functional and fault-tolerant (Sobral, 2026).
+
+
+
+# GitHub link 
 https://github.com/st10449059/CLDV6211-POE-St10449059
+# YouTube link 
+https://youtu.be/JgpI0LujRhY
+# Application link 
+https://eventease-app-yk-g6gfg6ffcgcuhkc8.southafricanorth-01.azurewebsites.net/
+PLEASE NOTE FOR ASSESSOR: To strictly comply with the Section C rubric requirement which dictates that "Resources are dropped, and proof is provided," the Azure Resource Group hosting this application was safely deleted after final testing. Consequently, this live URL is no longer active.
+Full, indisputable proof that the web application was fully accessible via the Azure URL, loaded quickly without startup errors, and successfully executed all features (filtering, database querying, and blob storage uploads) in the live production environment is provided in the YouTube Video Demonstration and the screenshot evidence below.
 
 
-# YouTube link: 
-https://youtu.be/VukVhs6QfwI
+ 
+# Screenshots 
+ 
+Home Page 
+<img width="939" height="500" alt="image" src="https://github.com/user-attachments/assets/2965523c-257e-4bbf-b34d-d86d17ff01f0" />
 
-# App Running
-# Home Page:  
-<img width="939" height="500" alt="image" src="https://github.com/user-attachments/assets/0558dcf8-92aa-41e1-82c6-5c11ad8965d4" />
+ 
+Venues Page
+<img width="939" height="499" alt="image" src="https://github.com/user-attachments/assets/f9259cd3-972a-4b5d-97f9-6ef5c2419054" />
 
+ 
+Events Page
+<img width="939" height="503" alt="image" src="https://github.com/user-attachments/assets/f6f31080-766f-419b-979a-99fc662e9c5f" />
 
-# Event Page:
-<img width="939" height="500" alt="image" src="https://github.com/user-attachments/assets/98e7f7f4-5767-4621-8ff1-d5bbe2481c9f" />
+ 
+Bookings Page 
+<img width="939" height="500" alt="image" src="https://github.com/user-attachments/assets/fd26e0cd-50dd-4459-a2e6-c759a6ce794f" />
 
-
-# Venues Page:
-<img width="939" height="498" alt="image" src="https://github.com/user-attachments/assets/dace1406-5b25-4ee3-a45b-e86092895a61" />
-
-
-# Bookings Page:
-<img width="938" height="502" alt="image" src="https://github.com/user-attachments/assets/89635c2d-989d-4fc2-9ac2-0d5b84e69f5d" />
-
-
-
-# Azure Storage Explorer
-<img width="939" height="497" alt="image" src="https://github.com/user-attachments/assets/b136d2bf-9269-4c86-a51d-bd8728ccff2f" />
-
-# Blob service code 
-
-using Azure.Storage.Blobs;
-using Microsoft.AspNetCore.Http;
-using System.IO;
-using System.Threading.Tasks;
-
-/* * CODE ATTRIBUTION & REFERENCE:
- * The implementation of Azure Blob Storage integration and the Azurite compatibility 
- * fixes were developed using official Microsoft documentation.
- * * Microsoft. (2023). Azure Blob storage client library for .NET. 
- * Available at: https://learn.microsoft.com/en-us/azure/storage/blobs/
- */
-
-namespace CLDV6211_Assignment_Part_1_St10449059.Services
-{
-    /// <summary>
-    /// Service responsible for handling file uploads to Azure Blob Storage or local Azurite emulator.
-    /// This service supports Phase A (Cloud Data Management) requirements.
-    /// </summary>
-    public class BlobService
-    {
-        private readonly BlobServiceClient _blobServiceClient;
-
-        public BlobService(string connectionString)
-        {
-            /* * PART 2: COMPATIBILITY FIX
-             * We force a specific older API version (2021-08-06) to ensure 
-             * compatibility with the lab's specific version of the Azurite emulator.
-             * This prevents "Version Not Supported" errors during development.
-             */
-            var options = new BlobClientOptions(BlobClientOptions.ServiceVersion.V2021_08_06);
-            _blobServiceClient = new BlobServiceClient(connectionString, options);
-        }
-
-        /// <summary>
-        /// Uploads a file from an HTML form to a specified blob container.
-        /// </summary>
-        /// <param name="file">The IFormFile received from the controller.</param>
-        /// <param name="containerName">Target container (e.g., 'venue-images' or 'event-images').</param>
-        /// <returns>The public URI of the uploaded blob.</returns>
-        public async Task<string> UploadFileAsync(IFormFile file, string containerName)
-        {
-            // Initialize the container client using the service client
-            var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-
-            try
-            {
-                /*
-                 * Ensures the container exists in the storage environment.
-                 * Set to PublicAccessType.Blob to allow the web application to display 
-                 * images directly via their URL.
-                 */
-                await containerClient.CreateIfNotExistsAsync(Azure.Storage.Blobs.Models.PublicAccessType.Blob);
-            }
-            catch (Azure.RequestFailedException)
-            {
-                // Silently continue if container check fails due to version handshake issues with Azurite
-            }
-
-            /*
-             * Generate a unique blob name using Path.GetRandomFileName() to avoid 
-             * overwriting files with the same name in the storage container.
-             */
-            var blobClient = containerClient.GetBlobClient(Path.GetRandomFileName() + Path.GetExtension(file.FileName));
-
-            // Open the file stream for reading the uploaded content
-            using var stream = file.OpenReadStream();
-
-            /* * PART 2: UPLOAD FIX
-             * Performs an asynchronous upload. The 'true' parameter allows overwriting
-             * if a blob with the same name happens to exist.
-             */
-            await blobClient.UploadAsync(stream, true);
-
-            // Return the absolute string URL of the blob for database persistence
-            return blobClient.Uri.ToString();
-        }
-    }
-}
-
-# Refrences 
-•	Connolly, T. M. & Begg, C. E. (2015). Database Systems: A Practical Approach to Design, Implementation, and Management. 6th edition. Pearson Education.
-
-•	Coyne, J. (2021). CSS Refactoring: Architecting Systems for Change. 2nd edition. O'Reilly Media.
-
-•	Elmasri, R. & Navathe, S. B. (2017). Fundamentals of Database Systems. 7th edition. Pearson.
-
-•	Freeman, A. (2022). Pro ASP.NET Core 6: Develop Cloud-Ready Web Applications Using MVC, Blazor, and Razor Pages. 9th edition. Apress.
-
-•	Lerman, J. & Miller, R. (2015). Programming Entity Framework: DbContext. 2nd edition. O'Reilly Media.
-
-•	Lucid Software Inc. (2026). Lucidchart Cloud-based Visual Workspace. [Online]. Available at: https://www.lucidchart.com [Accessed 14 April 2026].
-
-•	Microsoft. (2023). ASP.NET Core Middleware. [Online]. Available at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/ [Accessed 14 April 2026].
-
-•	Microsoft. (2023). Configuration in ASP.NET Core. [Online]. Available at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/ [Accessed 14 April 2026].
-
-•	Microsoft. (2023). Model-View-Controller (MVC) Pattern. [Online]. Available at: https://learn.microsoft.com/en-us/aspnet/core/mvc/overview [Accessed 14 April 2026].
-
-•	Microsoft. (2023). Primary and Foreign Key Constraints. [Online]. Available at: https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints [Accessed 14 April 2026].
-
-• CelerData (2025). Normalization vs denormalization: The trade-offs you need to know. [online] Available at: https://celerdata.com/glossary/normalization-vs-denormalization-the-trade-offs-you-need-to-know [Accessed 3 May 2026].
-
-• Codd, E.F. (1970). A Relational Model of Data for Large Shared Data Banks. Communications of the ACM, [online] 13(6), pp. 377-387. Available at: https://doi.org/10.1145/362384.362685 [Accessed 4 May 2026].
-
-•Couchbase (2025). Data normalization vs. denormalization comparison. [online] The Couchbase Blog. Available at: https://www.couchbase.com/blog/normalization-vs-denormalization/ [Accessed 2 May 2026].
-
-• Google Cloud (2026). What is database normalization? [online] Available at: https://cloud.google.com/discover/what-is-database-normalization [Accessed 5 May 2026].
-
-• IBM (2026). What is database normalization? [online] Available at: https://www.ibm.com/think/topics/database-normalization [Accessed 6 May 2026].
-
-• Imaginary Cloud (2025). Azure AI Search: Benefits, use cases and implementation. [online] Available at: https://www.imaginarycloud.com/blog/azure-ai-search-enterprise-guide/ [Accessed 30 April 2026].
-
-• Microsoft Learn (2026a). Introduction to Azure AI Search. [online] Available at: https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search [Accessed 1 May 2026].
-
-• Microsoft Learn (2026b). Vector search overview - Azure AI Search. [online] Available at: https://learn.microsoft.com/en-us/azure/search/vector-search-overview [Accessed 1 May 2026].
-
-• Microsoft Learn (2026c). Azure Blob storage client library for .NET. [online] Available at: https://learn.microsoft.com/en-us/azure/storage/blobs/ [Accessed 4 May 2026].
-
-• Microsoft Learn (2026d). Handle concurrency exceptions in Entity Framework Core. [online] Available at: https://learn.microsoft.com/en-us/ef/core/saving/concurrency [Accessed 5 May 2026].
-
-• Plain Concepts (2026). Azure Cognitive Search | Introduction. [online] Available at: https://www.plainconcepts.com/azure-cognitive-search-introduction/ [Accessed 2 May 2026].
-
-• ScaleGrid (2025). What is database normalization. [online] Available at: https://scalegrid.io/blog/what-is-database-normalization/ [Accessed 6 May 2026].
-
-• Unstructured (2025). Comparing vector and keyword search for AI applications. [online] Available at: https://unstructured.io/insights/comparing-vector-and-keyword-search-for-ai-applications [Accessed 4 May 2026].
+ 
+Proof that I have dropped all my resources.
+<img width="939" height="505" alt="image" src="https://github.com/user-attachments/assets/5408cca3-1512-4f36-92c3-c841f3310042" />
 
 
+ 
+Storage Browser image.
+<img width="939" height="514" alt="image" src="https://github.com/user-attachments/assets/fd0bfdc2-cf4a-4d51-a68f-dd052bbfc5d1" />
+
+
+
+Code attributions and references 
+Events controller:
+<img width="126" height="55" alt="image" src="https://github.com/user-attachments/assets/565ccad4-b847-4ddf-8937-d835acfe1b88" />
+
+ 
+Programming class: 
+ <img width="75" height="55" alt="image" src="https://github.com/user-attachments/assets/9d151568-63f1-4779-9afa-393588571983" />
+
+Blob services:
+ <img width="95" height="55" alt="image" src="https://github.com/user-attachments/assets/e5a0f21c-1614-4520-a9f5-5751c4c4756e" />
+
+PLEASE NOTE FOR ASSESSOR: Double click to view all the code and see the code attributions and the references.  
+
+# References
+•	Freeman, A. (2022). Pro ASP.NET Core 6. 9th edition. Apress.
+•	Microsoft. (2023). Overview of ASP.NET Core MVC. Available at: https://learn.microsoft.com/en-us/aspnet/core/mvc/overview 
+•	Microsoft. (2023). App Service documentation. Available at: https://learn.microsoft.com/en-us/azure/app-service/
+•	Microsoft. (2023). Introduction to Azure Blob Storage. Available at: https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction 
+•	Microsoft. (2023). Entity Framework Core documentation. Available at: https://learn.microsoft.com/en-us/ef/core/ 
+•	 Connolly, T. M. & Begg, C. E. (2015). Database Systems: A Practical Approach. 6th ed.
+•	Coyne, J. (2021). CSS Refactoring: Architecting Systems for Change. 2nd edition.
+•	Elmasri, R. & Navathe, S. B. (2017). Fundamentals of Database Systems. 7th edition.
+•	Freeman, A. (2022). Pro ASP.NET Core 6. 9th edition. Apress.
+•	Lerman, J. & Miller, R. (2015). Programming Entity Framework: DbContext. 2nd edition.
+•	Lucid Software Inc. (2026). Lucidchart Cloud-based Visual Workspace. [Online].
+•	Microsoft. (2026). Microsoft Copilot. Available at: https://copilot.microsoft.com/ 
+•	Microsoft. (2023). ASP.NET Core Middleware. [Online].
+•	Microsoft. (2023). Configuration in ASP.NET Core. [Online].
+•	Microsoft. (2023). Model-View-Controller (MVC) Pattern. [Online].
+•	Microsoft. (2023). Primary and Foreign Key Constraints. [Online].
+•	Microsoft. (2023). Azure Blob storage documentation. [Online]. Available at: https://learn.microsoft.com/en-us/azure/storage/blobs/ 
+•	Microsoft. (2023). Dependency injection in ASP.NET Core. [Online]. Available at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection
+•	Microsoft. (2023). Complex Querying in Entity Framework Core. [Online]. Available at: https://learn.microsoft.com/en-us/ef/core/querying/ 
+•	Microsoft. (2023). Handle concurrency conflicts in EF Core. [Online]. Available at: https://learn.microsoft.com/en-us/ef/core/saving/concurrency
+•	Arif, T. (2025). A comprehensive survey of privacy enhancing and trust centric cloud native security techniques against cyber threats. Journal of Cloud Computing. 12(1). Available at: https://www.mdpi.com/1424-8220/25/8/2350
+•	Babucea, A. N. (2021). SQL or NoSQL databases? Critical differences. Annals of the Constantin Brâncuși University of Târgu Jiu, Economy Series. 1(1). Available at: https://ideas.repec.org/a/cbu/jrnlec/y2021v1p53-59.html
+•	Borky, J. M. & Bradley, T. H. (2018). Effective Model Based Systems Engineering. Springer International Publishing. Available at: https://doi.org/10.1007/978-3-319-95669-5
+•	Morrow, T. (2013). Cloud security best practices derived from mission thread analysis. Software Engineering Institute, Carnegie Mellon University. Available at: https://kilthub.cmu.edu/articles/report/Cloud_Security_Best_Practices_Derived_from_Mission_Thread_Analysis/12363563
+•	Paci, H. (2022). SQL vs NoSQL databases from developer point of view. International Journal of Computer Science and Information Technology. 3(9). Available at: https://stumejournals.com/journals/i4/2022/3/95
+•	Sobral, V. A. L. (2026). Experimental evaluation of serverless data layer architectures for smart city Internet of Things applications. MDPI. 9(5). Available at: https://www.mdpi.com/2624-6511/9/5/80
+•	Yu, J. & Buyya, R. (2009). Gridbus workflow enactment engine. In Grid Computing. CRC Press. Available at: https://clouds.cis.unimelb.edu.au/papers/GridbusWorkflowEngine2008.pdf
 
 
